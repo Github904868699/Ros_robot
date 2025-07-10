@@ -7,6 +7,7 @@
 #include <geometry_msgs/Twist.h>
 #include <signal.h>
 #include <chrono>
+#include <memory>
 #include <cmath>
 #include <fstream>
 #include <regex>
@@ -19,9 +20,11 @@
 #include "dm_motor/MotorFeedback.h"
 #include "dm_motor/hdrarm_msg.h"
 #include "sensor_msgs/JointState.h"
+#include <moveit/move_group_interface/move_group_interface.h>
 
 //声明变量
 ros::Publisher can1_pub;
+std::unique_ptr<moveit::planning_interface::MoveGroupInterface> arm;
 
 //定义需要监看的时间点
 clock_t t_enable_motor, t_disable_motor, t_now;
@@ -399,12 +402,11 @@ void motor_control_continue(void)
         {
             teach_txt.write_close();
             teach_txt.read_close();
-            motor_1.pos_target = 0;
-            motor_2.pos_target = 0;
-            motor_3.pos_target = 0;
-            motor_4.pos_target = 0;
-            motor_5.pos_target = 0;
-            motor_6.pos_target = 0;
+            if(arm)
+            {
+                arm->setNamedTarget("stand");
+                arm->move();
+            }
         }
         else if(hdrarm_control.drag_teachin=="write")
         {
@@ -706,6 +708,10 @@ int main(int argc, char **argv)
 
     // 创建节点句柄
     ros::NodeHandle n;
+
+    ros::AsyncSpinner spinner(1);
+    spinner.start();
+    arm.reset(new moveit::planning_interface::MoveGroupInterface("arm"));
 
     // 创建subscriber
     ros::Subscriber can1_rev = n.subscribe("/can1_rx", 500, can1_rx_Callback);
