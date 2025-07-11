@@ -55,6 +55,16 @@ MotorControlSet motor_6(MOTOR_6,"DM4310");
 //定义控制信息对象
 HdrarmControlSet hdrarm_control;
 
+//使用MoveIt让机械臂回到"stand"姿态
+static void moveArmToStand()
+{
+    if(arm)
+    {
+        arm->setNamedTarget("stand");
+        arm->move();
+    }
+}
+
 //定义拖动示教文件目录及名称(暂时固定写入名)
 //在命令行可使用pwd命令查看当前绝对路径
 //DragTeachInSet teach_txt("/home/lyf/roboarm_ws/src/dm_motor/txt/drag_teachin_1.txt");
@@ -402,11 +412,7 @@ void motor_control_continue(void)
         {
             teach_txt.write_close();
             teach_txt.read_close();
-            if(arm)
-            {
-                arm->setNamedTarget("stand");
-                arm->move();
-            }
+            moveArmToStand();
         }
         else if(hdrarm_control.drag_teachin=="write")
         {
