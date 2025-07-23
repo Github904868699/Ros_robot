@@ -450,6 +450,8 @@ void motor_control_continue(void)
             motor_4.kp = 0;
             motor_5.kp = 0;
             motor_6.kp = 0;
+            //计算重力补偿扭矩，确保拖动时机械臂处于失重状态
+            gravity_compensation();
         }
         else if(hdrarm_control.drag_teachin=="read")
         {
@@ -509,6 +511,8 @@ void motor_control_continue(void)
                 motor_4.pos_target = 0;
                 motor_5.pos_target = 0;
                 motor_6.pos_target = 0;
+                //在读取失败等待阶段同样仅使用重力补偿力矩
+                gravity_compensation();
             }
         }
         //记录上一次拖动示教的状态
